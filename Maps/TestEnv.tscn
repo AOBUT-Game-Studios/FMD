@@ -1,8 +1,9 @@
-[gd_scene load_steps=26 format=2]
+[gd_scene load_steps=28 format=2]
 
 [ext_resource path="res://addons/qodot/src/nodes/qodot_map.gd" type="Script" id=1]
 [ext_resource path="res://addons/qodot/game_definitions/fgd/qodot_fgd.tres" type="Resource" id=2]
 [ext_resource path="res://Player/Player.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Grapple/Grapple Point.tscn" type="PackedScene" id=4]
 
 [sub_resource type="SpatialMaterial" id=1]
 
@@ -78,6 +79,8 @@ points = PoolVector3Array( 15.6402, 9.54801, -3.07866, 18, 4.6973, -3, 25, 8.102
 
 [sub_resource type="ConvexPolygonShape" id=22]
 points = PoolVector3Array( -4, 10, -31, -4, 1, -31, -3, 1, -31, -3, 10, -31, -4, 10, -16, -4, 1, -16, -3, 1, -16, -3, 10, -16 )
+
+[sub_resource type="Environment" id=23]
 
 [node name="TestEnv" type="Spatial"]
 
@@ -167,3 +170,28 @@ shape = SubResource( 22 )
 
 [node name="Player" parent="." instance=ExtResource( 3 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6.40409, 0 )
+gravity = -20.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 23 )
+
+[node name="Lighting" type="Spatial" parent="."]
+
+[node name="OmniLight" type="OmniLight" parent="Lighting"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10.1085, 0 )
+omni_range = 18.296
+
+[node name="OmniLight2" type="OmniLight" parent="Lighting"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 16.3985, 15.9466, 22.7823 )
+omni_range = 17.099
+
+[node name="OmniLight3" type="OmniLight" parent="Lighting"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5727, 7.18492, -17.6846 )
+omni_range = 17.099
+
+[node name="OmniLight4" type="OmniLight" parent="Lighting"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -16.4667, 4.25116, -15.7074 )
+omni_range = 11.91
+
+[node name="Grapple Point" parent="." instance=ExtResource( 4 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.799, 0 )

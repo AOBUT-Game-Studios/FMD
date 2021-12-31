@@ -1,27 +1,23 @@
 extends KinematicBody
 
-#Last Change : 12/11/21
+#Last Change : 12/31/21
 
 #CHANGELOG
-	#Added TODO list
-	#Added Reference List
-	#Added To research list
-	#Added Basic WASD Movement
-	#Added camera movement
-	#Added Gravity
+	#Improved movement feel
+	#Added run and jump drag values
 
 #TODO
-#Basic WASD Movement
+#Basic WASD Movement COMPLETE 12/31/21
 	#Movement along the horizontal plane COMPLETE 12/11/21
 	#Should rotate movement axis is accordance with the camera angle COMPLETE 12/11/21
-	#Gradual accelaretion and momentum should be slightly maintained, but not to the point where it feels like sliding
-	#Increase momentum while in air, so that player has less control over arial movement
-#Camera Controls
+	#Gradual accelaretion and momentum should be slightly maintained, but not to the point where it feels like sliding COMPLETE 12/31/21
+	#Increase momentum while in air, so that player has less control over arial movement COMPLETE 12/31/21
+#Camera Controls COMPLETE 12/11/21
 	#Rotate character and camera according to mouse movement COMPLETE 12/11/21
 	#Cap off vertical rotation, to prevent the camera from going upside down COMPLETE 12/11/21
 #Jumping and airtime physics
-	#Jump should be a low to the ground boost of momentum (B Hopping)
-	#Midair jumps allow for realignment of trajectory
+	#Jump should be a low to the ground boost of momentum (B Hopping) COMPLETE 12/31/21 
+	#Midair jumps allow for realignment of trajectory 
 	#The player should feel in control while midair, but should still have limited horizontal influence outside of jumping and grappling
 #Grapple Mechanic
 	#Pulls player towards viable object, and past the object
@@ -52,8 +48,18 @@ onready var pivot = $Pivot #Camera Pivot Node
 export (float) var gravity = -9 #Force of gravity, applied to the -y axis, multiplied by delta
 export (float) var max_speed = 14 #Horizontal Speed Cap
 export (float) var mouse_sens = 0.02 #Camera movement sensitivity
+export (float) var jump_strength = 55 #Initial jump strength, compared to gravity
+export (float) var jump_drag = 20 #How difficult it is to change direction mid air
+export (float) var jump_accel_init = 3 #Starting acceleration value when jumping
+export (float) var jump_accel_cap = -20 #cut off point for increasing jump gravity
+export (float) var run_drag = 5 #How hard it is to turn when running
 
+onready var jump_accel = jump_accel_init 
 var velocity = Vector3() #The players velocity, currently maintains the y axis info between frames
+var jumping = false #Whether or not the player is able to jump
+var jump_current = 0 #Current Jump Strength Value
+var was_on_floor #True if player was on floor the previous frame
+var snap = Vector3.DOWN #Toggle snap to ground, empty vector is off, while downward is on
 
 func _ready():
 	#Capture the mouse upon launching scene
@@ -73,8 +79,38 @@ func get_input():
 		input_dir += -cam.global_transform.basis.x
 	if Input.is_action_pressed("right"):
 		input_dir += cam.global_transform.basis.x
+	if Input.is_action_just_pressed("jump") and !jumping:
+		jumping = true
+		jump_current = jump_strength
+		snap = Vector3()
 	#Returns a vector 3 containing the normalized horizontal movement information
 	return input_dir.normalized()
+
+#Jump arc calculations
+func jump(delta):
+	#Check if that player left the floor since the last frame, and prevent them from jumping, while still applying velocity
+	if !is_on_floor() and was_on_floor and !jumping:
+		was_on_floor = false
+		jumping = true
+		jump_current = gravity * -1
+	#Check if player is on floor
+	elif is_on_floor():
+		was_on_floor = true
+	
+	#Check if player reconnects with floor
+	if is_on_floor() and jump_current < jump_strength - 10:
+		jumping = false
+		snap = Vector3.DOWN
+		jump_accel = jump_accel_init
+	
+	#Return jump value depending on jumping state
+	if jumping:
+		if jump_current > jump_accel_cap:
+			jump_accel += delta
+			jump_current -= jump_accel
+		return jump_current * delta
+	else:
+		return 0
 
 #Get the mouse movement input to control the camera
 func _unhandled_input(event):
@@ -85,8 +121,13 @@ func _unhandled_input(event):
 
 #Runs the physics inputs every frame
 func _physics_process(delta):
-	velocity.y += gravity * delta #Adds new gravity to this frame
+	velocity.y += (gravity * delta) + jump(delta) #Adds new gravity to this frame
 	var desired_velocity = get_input() * max_speed
-	velocity.x = desired_velocity.x
-	velocity.z = desired_velocity.z
-	velocity = move_and_slide(velocity, Vector3.UP, true) #Finally move the player
+	#Maintain a large portion of previous frames horizontal plane velocity, increasing drag increases effort needed to change direction
+	if !jumping:
+		velocity.x = ((velocity.x / run_drag) * (run_drag - 1)) + (desired_velocity.x / run_drag)
+		velocity.z = ((velocity.z / run_drag) * (run_drag - 1)) + (desired_velocity.z / run_drag)
+	else:
+		velocity.x = ((velocity.x / jump_drag) * (jump_drag - 1)) + (desired_velocity.x / jump_drag) * 1.5
+		velocity.z = ((velocity.z / jump_drag) * (jump_drag - 1)) + (desired_velocity.z / jump_drag) * 1.5
+	velocity = move_and_slide_with_snap(velocity ,snap, Vector3.UP, false, 4, 0.75, true) #Finally move the player

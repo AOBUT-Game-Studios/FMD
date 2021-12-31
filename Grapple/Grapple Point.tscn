@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=2]
+
+[sub_resource type="SphereShape" id=24]
+radius = 1.0246
+
+[sub_resource type="SphereMesh" id=25]
+
+[node name="Grapple Point" type="StaticBody" groups=["grapple"]]
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+shape = SubResource( 24 )
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+mesh = SubResource( 25 )
+skeleton = NodePath("../CollisionShape")
+material/0 = null
