@@ -1,10 +1,9 @@
 extends KinematicBody
 
-#Last Change : 12/31/21
+#Last Change : 01/04/22
 
 #CHANGELOG
-	#Improved movement feel
-	#Added run and jump drag values
+	#Added Grapple
 
 #TODO
 #Basic WASD Movement COMPLETE 12/31/21
@@ -20,11 +19,11 @@ extends KinematicBody
 	#Midair jumps allow for realignment of trajectory 
 	#The player should feel in control while midair, but should still have limited horizontal influence outside of jumping and grappling
 #Grapple Mechanic
-	#Pulls player towards viable object, and past the object
+	#Pulls player towards viable object, and past the object COMPLETE 01/04/22
 	#Player receives an extra jump after a successful grapple, which allows them to realign trajectory
 	#Grapping disables players collision with a majority of in game set peices, excluding walls and platforms
-	#The grapple should launch the player in the direction of the grappled object, and past that object
-	#The trajectory of the launch is not direct, but rather an arc.
+	#The grapple should launch the player in the direction of the grappled object, and past that object COMPLETE 01/04/22
+	#The trajectory of the launch is not direct, but rather an arc. COMPLETE 01/04/22
 	#Grapples should feel good to chain, with a moderate cooldown.
 	#You cannot grapple mid launch.
 #Swatting
@@ -53,10 +52,14 @@ export (float) var jump_drag = 20 #How difficult it is to change direction mid a
 export (float) var jump_accel_init = 3 #Starting acceleration value when jumping
 export (float) var jump_accel_cap = -20 #cut off point for increasing jump gravity
 export (float) var run_drag = 5 #How hard it is to turn when running
+export (float) var grapple_drag = 200
+export (float) var grapple_time_init = 1
 
 onready var jump_accel = jump_accel_init 
 var velocity = Vector3() #The players velocity, currently maintains the y axis info between frames
 var jumping = false #Whether or not the player is able to jump
+var grapple = false
+onready var grapple_time = grapple_time_init
 var jump_current = 0 #Current Jump Strength Value
 var was_on_floor #True if player was on floor the previous frame
 var snap = Vector3.DOWN #Toggle snap to ground, empty vector is off, while downward is on
@@ -83,6 +86,12 @@ func get_input():
 		jumping = true
 		jump_current = jump_strength
 		snap = Vector3()
+	if Input.is_action_just_pressed("grapple") and !grapple:
+		grapple(get_parent().get_node("Grapple Point"))
+		snap = Vector3()
+	#Uncapture mouse
+	if Input.is_action_just_pressed("menu"):
+		Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	#Returns a vector 3 containing the normalized horizontal movement information
 	return input_dir.normalized()
 
@@ -119,15 +128,38 @@ func _unhandled_input(event):
 		rotate_y(-event.relative.x * mouse_sens)
 		pivot.rotation.x = clamp(pivot.rotation.x, -1.2, 1.2)
 
+#Grapple velocity calculations
+func grapple(target):
+	grapple = true
+	var dir = (target.get_transform().origin - get_transform().origin).normalized()
+	var distance = (target.get_transform().origin - get_transform().origin).length()
+	velocity = dir * max_speed * (distance / 5)
+	grapple_time = grapple_time_init
+
 #Runs the physics inputs every frame
 func _physics_process(delta):
-	velocity.y += (gravity * delta) + jump(delta) #Adds new gravity to this frame
+	if !grapple:
+		velocity.y += (gravity * delta) + jump(delta) #Adds new gravity to this frame
 	var desired_velocity = get_input() * max_speed
+	
+	if grapple:
+		grapple_time -= delta
+		if grapple_time <= 0:
+			grapple = false
+			snap = Vector3.DOWN
+	
 	#Maintain a large portion of previous frames horizontal plane velocity, increasing drag increases effort needed to change direction
-	if !jumping:
+	if grapple:
+		velocity.x = ((velocity.x / grapple_drag) * (grapple_drag - 1)) + (desired_velocity.x / grapple_drag) * 2
+		velocity.z = ((velocity.z / grapple_drag) * (grapple_drag - 1)) + (desired_velocity.z / grapple_drag) * 2
+		velocity.y = velocity.y
+	elif !jumping:
 		velocity.x = ((velocity.x / run_drag) * (run_drag - 1)) + (desired_velocity.x / run_drag)
 		velocity.z = ((velocity.z / run_drag) * (run_drag - 1)) + (desired_velocity.z / run_drag)
-	else:
+	elif jumping:
 		velocity.x = ((velocity.x / jump_drag) * (jump_drag - 1)) + (desired_velocity.x / jump_drag) * 1.5
 		velocity.z = ((velocity.z / jump_drag) * (jump_drag - 1)) + (desired_velocity.z / jump_drag) * 1.5
+		
 	velocity = move_and_slide_with_snap(velocity ,snap, Vector3.UP, false, 4, 0.75, true) #Finally move the player
+	
+
