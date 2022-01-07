@@ -197,5 +197,9 @@ omni_range = 11.91
 
 [node name="Grapple Point" parent="." instance=ExtResource( 4 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11.799, 0 )
-collision_layer = 2
-collision_mask = 2
+
+[node name="Grapple Point2" parent="." instance=ExtResource( 4 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -12.4803, 9.78922, 0 )
+
+[node name="Grapple Point3" parent="." instance=ExtResource( 4 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 15.1529, 11.5315, -18.9288 )

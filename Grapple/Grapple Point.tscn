@@ -6,6 +6,8 @@ radius = 1.0246
 [sub_resource type="SphereMesh" id=25]
 
 [node name="Grapple Point" type="StaticBody" groups=["grapple"]]
+collision_layer = 2
+collision_mask = 2
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
 shape = SubResource( 24 )

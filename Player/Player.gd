@@ -63,6 +63,7 @@ onready var grapple_time = grapple_time_init
 var jump_current = 0 #Current Jump Strength Value
 var was_on_floor #True if player was on floor the previous frame
 var snap = Vector3.DOWN #Toggle snap to ground, empty vector is off, while downward is on
+var grapple_target = null
 
 func _ready():
 	#Capture the mouse upon launching scene
@@ -86,8 +87,8 @@ func get_input():
 		jumping = true
 		jump_current = jump_strength
 		snap = Vector3()
-	if Input.is_action_just_pressed("grapple") and !grapple:
-		grapple(get_parent().get_node("Grapple Point"))
+	if Input.is_action_just_pressed("grapple") and !grapple and grapple_target != null:
+		grapple(grapple_target)
 		snap = Vector3()
 	#Uncapture mouse
 	if Input.is_action_just_pressed("menu"):
@@ -163,3 +164,11 @@ func _physics_process(delta):
 	velocity = move_and_slide_with_snap(velocity ,snap, Vector3.UP, false, 4, 0.75, true) #Finally move the player
 	
 
+func grapple_detect_enter(body):
+	if body.is_in_group('grapple'):
+		grapple_target = body
+
+
+func grapple_detect_exit(body):
+	if body.is_in_group('grapple') and grapple_target == body:
+		grapple_target = null
