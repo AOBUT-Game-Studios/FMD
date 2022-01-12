@@ -32,7 +32,7 @@ collision_mask = 3
 monitorable = false
 
 [node name="CollisionShape" type="CollisionShape" parent="Pivot/Area"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -15 )
 shape = SubResource( 2 )
 
 [connection signal="body_entered" from="Pivot/Area" to="." method="grapple_detect_enter"]

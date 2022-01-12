@@ -54,6 +54,7 @@ export (float) var jump_accel_cap = -20 #cut off point for increasing jump gravi
 export (float) var run_drag = 5 #How hard it is to turn when running
 export (float) var grapple_drag = 200
 export (float) var grapple_time_init = 1
+export (float) var grapple_distance = 10
 
 onready var jump_accel = jump_accel_init 
 var velocity = Vector3() #The players velocity, currently maintains the y axis info between frames
@@ -134,7 +135,7 @@ func grapple(target):
 	grapple = true
 	var dir = (target.get_transform().origin - get_transform().origin).normalized()
 	var distance = (target.get_transform().origin - get_transform().origin).length()
-	velocity = dir * max_speed * (distance / 5)
+	velocity = dir * max_speed * ((distance / grapple_distance) + 1)
 	grapple_time = grapple_time_init
 
 #Runs the physics inputs every frame
