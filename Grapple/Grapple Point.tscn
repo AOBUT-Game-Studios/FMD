@@ -16,3 +16,7 @@ shape = SubResource( 24 )
 mesh = SubResource( 25 )
 skeleton = NodePath("../CollisionShape")
 material/0 = null
+
+[node name="OmniLight" type="OmniLight" parent="."]
+light_color = Color( 0.952941, 0.796078, 0.376471, 1 )
+omni_range = 25.0

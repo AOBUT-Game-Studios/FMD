@@ -11,10 +11,13 @@ extents = Vector3( 4, 4, 20 )
 
 [node name="Player" type="KinematicBody"]
 script = ExtResource( 1 )
+gravity = -25.0
+max_speed = 20.0
 jump_strength = 85.0
 jump_drag = 25.0
 jump_accel_cap = -25.0
-run_drag = 10.0
+grapple_time_init = 0.25
+grapple_distance = 15.0
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
 transform = Transform( 1, 0, 0, 0, 1.19249e-08, 1, 0, -1, 1.19249e-08, 0, 0, 0 )
